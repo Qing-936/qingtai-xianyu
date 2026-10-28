@@ -18,9 +18,10 @@ metadata:
 - Node.js >= 18
 - `qtx` CLI（`qingtai-xianyu`，从 GitHub 直装）：
   ```bash
-  npm install -g github:Qing-936/qingtai-xianyu
+  npm install -g https://github.com/Qing-936/qingtai-xianyu/archive/refs/heads/master.tar.gz
   ```
   验证：`qtx help`。
+  > Windows 上不要用 `npm i -g github:...` 简写（npm 会做成指向缓存临时目录的软链，装完即坏），用上面的 tarball URL。
 - 首次使用需登录（凭证只存 access/refresh token，不存明文密码，落在 `~/.qingtai-xianyu/config.json`）：
   ```bash
   qtx login            # 交互式输入用户名/密码（密码不回显）

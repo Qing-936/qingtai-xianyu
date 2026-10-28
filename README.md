@@ -9,7 +9,8 @@
 npx skills add Qing-936/qingtai-xianyu/skills/qingtai-xianyu
 
 # 2. 安装 CLI（agent 首次用到 qtx 时会按 skill 提示自动装，也可手动装）
-npm install -g github:Qing-936/qingtai-xianyu
+npm install -g https://github.com/Qing-936/qingtai-xianyu/archive/refs/heads/master.tar.gz
+#    Windows 上不要用 `npm i -g github:...` 简写（npm 软链指向缓存临时目录，装完即坏）
 
 # 3. 登录一次（token 存 ~/.qingtai-xianyu，不存明文密码）
 qtx login
