@@ -1,0 +1,24 @@
+{
+  "name": "qingtai-xianyu",
+  "version": "0.2.0",
+  "description": "闲鱼管理后台访问 CLI（qtx），只读查询 + 写操作，供 Qoder/Codex/Trae/WorkBuddy 等 agent 调用",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Qing-936/qingtai-xianyu.git"
+  },
+  "bin": {
+    "qtx": "bin/qtx.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  }
+}
