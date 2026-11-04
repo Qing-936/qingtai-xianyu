@@ -1,6 +1,6 @@
 ---
 name: qingtai-xianyu
-version: 0.2.0
+version: 0.3.0
 description: Access the Xianyu (闲鱼) admin backend via the `qtx` CLI — read-only queries plus write operations (products, orders, accounts, messages, dashboard, ports, coupons, sources, agents, reply tasks, virtual-supply orders). Use when the user asks to 查看/查询/操作闲鱼商品、订单、账号、消息、货源、卡券、上下架、改价、发货、导入、回复任务 etc.
 description_zh: 通过 `qtx` CLI 访问闲鱼管理后台——只读查询 + 写操作（商品、订单、账号、消息、工作台、端口、卡券、货源、Agent、回复任务、虚拟货源订单）。当用户要求查看/查询或操作闲鱼商品、订单、账号、消息、货源、卡券、上下架、改价、发货、导入、回复任务等时使用。
 metadata:
@@ -51,8 +51,11 @@ qtx <域> <动作> [--page-no N] [--page-size N] [-p key=value]... [--json]
 | 按远端ID | `qtx product get-by-remote-id -p accountId=1 -p remoteProductId=456 --json` | |
 | 类目 | `qtx product category-list -p accountId=1 --json` | 可选 `itemBizType`/`spBizType` |
 | 属性值 | `qtx product pv-list -p accountId=1 -p channelCatId=xxx --json` | |
+| 拉取进度 | `qtx product pull-progress -p accountId=1 --json` | 查询「从远端拉取商品」异步任务进度（配合写操作 `product pull`） |
 
 商品分页过滤字段（`-p`）：`id`、`title`（模糊）、`outerId`、`channelCatName`、`status`（本地状态）、`productStatus`、`publishStatus`、`priceMin`/`priceMax`（分）、`accountId`、`sourceInventoryId`、`createTimeStart`/`createTimeEnd`。
+
+> **规格图（SKU 图片）**：`product get`/`page` 返回体含 `skuItems[]`，每条为 `{id,remoteSkuId,skuName,price(分),stock,outerId,imageUrl,imageWidth,imageHeight}`；写操作 `product create`/`update` 的 `--body.skuItems[]` 用同一结构下发规格图。规格图三要素 `imageUrl`+`imageWidth`+`imageHeight` **必须齐全且宽高 > 0**，缺任一则该条规格图被后端静默丢弃（不报错）；`skuName` 是多维组合（如 `颜色:黑;容量:64G`），闲鱼侧规格图挂在首段规格值上。
 
 ### 订单 order
 | 动作 | 命令 |
@@ -137,7 +140,7 @@ qtx <域> <动作> [--page-no N] [--page-size N] [-p key=value]... [--json]
 | product delete | --id，可选 -p forceLocal=true | 是 |
 | product sync / publish / down-shelf / copy | --id（copy 加 -p targetAccountId=） | 是 |
 | product edit-stock | --id | 否 |
-| product pull | -p accountId= | 否 |
+| product pull | --body {accountId,updateTimeStart?,updateTimeEnd?} | 否 |
 | order cancel | --id，可选 -p reason= | 是 |
 | order modify-price | --body {id,orderPrice,expressFee} | 是 |
 | order attachment-pickup | --body {orderId,imageUrls[]} | 是 |
@@ -178,11 +181,20 @@ qtx <域> <动作> [--page-no N] [--page-size N] [-p key=value]... [--json]
 | virtualsupply order-retry | --id | 是 |
 | virtualsupply order-cancel | --id，-p reason= | 是 |
 
+> **`product pull` 是异步任务**：提交后立即返回进度对象（`status=running`），不会同步返回拉取结果。需用 `qtx product pull-progress -p accountId= --json` 轮询到 `status=success`（或 `failed`，看 `message`）为止；返回体含 `seenCount`（远端命中处理数）/`syncedCount`（成功落库数）/`currentWindow`（当前时间窗口）。`--body` 里 `updateTimeStart`/`updateTimeEnd` **均省略即全量同步，且带对账清理**（会下线/清理本地存在但远端已不存在的商品）；只想增量拉取时务必显式给时间范围（格式 `YYYY-MM-DD HH:mm:ss`）。该操作只改本地库、不推送对客，故为普通写；但全量对账清理不可逆，执行前应向用户说明范围。
+
 ### 常用 body 示例
 
 ```bash
 # 商品创建/更新（字段见 XianyuProductSaveReqVO）
 qtx product create --body '{"accountId":1,"itemBizType":2,"title":"...","price":9900,"stock":10,"images":["https://..."]}' --yes
+
+# 商品更新带规格图（skuItems[]；imageUrl+imageWidth+imageHeight 三者缺一不可、宽高>0，否则该规格图被静默丢弃）
+qtx product update --body '{"id":123,"skuItems":[{"id":1,"skuName":"颜色:黑","price":9900,"stock":5,"imageUrl":"https://...","imageWidth":800,"imageHeight":800}]}' --yes
+
+# 从远端拉取商品（异步任务；增量给时间范围，全量省略时间字段并带对账清理）
+qtx product pull --body '{"accountId":1,"updateTimeStart":"2026-10-27 00:00:00","updateTimeEnd":"2026-11-03 23:59:59"}'
+qtx product pull-progress -p accountId=1 --json   # 轮询进度直到 status=success/failed
 
 # 订单改价（orderPrice/expressFee 单位为分）
 qtx order modify-price --body '{"id":123,"orderPrice":9900,"expressFee":0}' --yes

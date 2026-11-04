@@ -17,6 +17,7 @@ export const COMMANDS: Command[] = [
   { domain: 'product', action: 'get-by-remote-id', method: 'GET', path: '/app/xianyu/product/get-by-remote-id', summary: '按账号+远端商品ID查详情（-p accountId= -p remoteProductId=）' },
   { domain: 'product', action: 'category-list', method: 'GET', path: '/app/xianyu/product/category-list', summary: '商品类目（-p accountId=）' },
   { domain: 'product', action: 'pv-list', method: 'GET', path: '/app/xianyu/product/pv-list', summary: '商品属性值（-p accountId= -p channelCatId=）' },
+  { domain: 'product', action: 'pull-progress', method: 'GET', path: '/app/xianyu/product/pull-progress', summary: '查询商品远端拉取任务进度（-p accountId=）' },
 
   // 订单
   { domain: 'order', action: 'page', method: 'GET', path: '/app/xianyu/order/page', summary: '订单分页' },
@@ -94,7 +95,7 @@ export const COMMANDS: Command[] = [
   { domain: 'product', action: 'down-shelf', method: 'POST', path: '/app/xianyu/product/down-shelf', dangerous: true, summary: '下架商品（--id）' },
   { domain: 'product', action: 'edit-stock', method: 'POST', path: '/app/xianyu/product/edit-stock', summary: '同步本地库存到远端（--id）' },
   { domain: 'product', action: 'copy', method: 'POST', path: '/app/xianyu/product/copy', dangerous: true, summary: '复制商品（--id，-p targetAccountId=）' },
-  { domain: 'product', action: 'pull', method: 'POST', path: '/app/xianyu/product/pull', summary: '从远端拉取账号商品（-p accountId=）' },
+  { domain: 'product', action: 'pull', method: 'POST', path: '/app/xianyu/product/pull', body: true, summary: '提交「从远端拉取商品」异步任务（--body {accountId,updateTimeStart?,updateTimeEnd?}，时间范围均空即全量同步含对账清理）' },
   { domain: 'product', action: 'import-create', method: 'POST', path: '/app/xianyu/product/import/create', body: true, dangerous: true, summary: '批量导入确认创建（--body）' },
 
   // 订单
