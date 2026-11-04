@@ -1,8 +1,8 @@
 ---
 name: qingtai-xianyu
-version: 0.3.0
-description: Access the Xianyu (闲鱼) admin backend via the `qtx` CLI — read-only queries plus write operations (products, orders, accounts, messages, dashboard, ports, coupons, sources, agents, reply tasks, virtual-supply orders). Use when the user asks to 查看/查询/操作闲鱼商品、订单、账号、消息、货源、卡券、上下架、改价、发货、导入、回复任务 etc.
-description_zh: 通过 `qtx` CLI 访问闲鱼管理后台——只读查询 + 写操作（商品、订单、账号、消息、工作台、端口、卡券、货源、Agent、回复任务、虚拟货源订单）。当用户要求查看/查询或操作闲鱼商品、订单、账号、消息、货源、卡券、上下架、改价、发货、导入、回复任务等时使用。
+version: 0.4.0
+description: Access the Xianyu (闲鱼) admin backend via the `qtx` CLI — read-only queries plus write operations (products, orders, accounts, messages, dashboard, ports, coupons, sources, agents, reply tasks, virtual-supply orders) and local file/image upload to OSS. Use when the user asks to 查看/查询/操作闲鱼商品、订单、账号、消息、货源、卡券、上下架、改价、发货、导入、回复任务、上传图片 etc.
+description_zh: 通过 `qtx` CLI 访问闲鱼管理后台——只读查询 + 写操作（商品、订单、账号、消息、工作台、端口、卡券、货源、Agent、回复任务、虚拟货源订单）+ 本地图片/文件上传到 OSS。当用户要求查看/查询或操作闲鱼商品、订单、账号、消息、货源、卡券、上下架、改价、发货、导入、回复任务、上传图片等时使用。
 metadata:
   short-description: Xianyu admin backend via qtx CLI (read + write; dangerous ops need --yes)
 ---
@@ -115,6 +115,13 @@ qtx <域> <动作> [--page-no N] [--page-size N] [-p key=value]... [--json]
 ### 虚拟货源订单 virtualsupply
 `qtx virtualsupply order-page` / `qtx virtualsupply order-get --id 1`
 
+### 文件 file（本地图片/附件上传 → URL）
+| 动作 | 命令 | 说明 |
+|------|------|------|
+| 上传 | `qtx file upload ./cover.png` | 上传本地文件到 infra 文件存储，**返回可访问 URL 字符串**（plain 输出即裸 URL，`--json` 带引号）。可选 `-p directory=xianyu/product` 指定存储目录（也支持 `--file`、`--directory`） |
+
+> 商品主图 `images[]` 与规格图 `skuItems[].imageUrl` 都必须是 URL，`--body` 不接受本地路径。**创建/更新商品前，先对每张本地图跑 `qtx file upload <路径>` 拿到 URL，再填进 body**。上传是普通写（无 `--yes` 确认），返回的 URL 直接可用。
+
 > 未列出的过滤字段：各域分页接口支持任意后端 VO 字段透传，用 `-p key=value` 按管理后台页面字段名拼接即可。
 
 ## 写操作
@@ -186,7 +193,7 @@ qtx <域> <动作> [--page-no N] [--page-size N] [-p key=value]... [--json]
 ### 常用 body 示例
 
 ```bash
-# 商品创建/更新（字段见 XianyuProductSaveReqVO）
+# 商品创建/更新（字段见 XianyuProductSaveReqVO；images 与 skuItems[].imageUrl 需先用 `qtx file upload` 换成 URL）
 qtx product create --body '{"accountId":1,"itemBizType":2,"title":"...","price":9900,"stock":10,"images":["https://..."]}' --yes
 
 # 商品更新带规格图（skuItems[]；imageUrl+imageWidth+imageHeight 三者缺一不可、宽高>0，否则该规格图被静默丢弃）
@@ -219,7 +226,7 @@ qtx replytask create --body '{"accountId":1,"buyerNick":"买家昵称","content"
 
 ### 暂不支持
 
-文件上传/下载接口 CLI 未覆盖：product `import/parse`（Excel 解析）、source inventory `import/parse`、各 `export-csv`（返回文件流）。涉及这些时告知用户需在管理后台页面操作。
+通用文件上传已支持（`qtx file upload`，返回 URL）。仍未覆盖的文件类接口：product `import/parse`、source inventory `import/parse`（Excel 解析生成预览）与各 `export-csv`（返回文件流下载）。涉及这些时告知用户需在管理后台页面操作。
 
 ## 输出与展示规范
 

@@ -2,7 +2,7 @@
 
 import { login, logout, showStatus } from './auth';
 import { COMMANDS, Command } from './commands';
-import { request } from './client';
+import { request, uploadFile } from './client';
 import { render } from './output';
 
 const VALUE_FLAGS = new Set([
@@ -14,6 +14,8 @@ const VALUE_FLAGS = new Set([
   'tenant-id',
   'base-url',
   'body',
+  'file',
+  'directory',
 ]);
 const BOOL_FLAGS = new Set(['json', 'help', 'yes']);
 
@@ -121,6 +123,7 @@ function printHelp(): void {
   console.log('  qtx logout                                 退出登录');
   console.log('  qtx status                                 查看登录状态');
   console.log('  qtx <域> <动作> [--page-no N] [--page-size N] [-p key=value]... [--json]');
+  console.log('  qtx file upload <本地路径> [-p directory=] [--json]   上传图片/文件返回可访问 URL');
   console.log('');
   console.log('命令列表:');
   let lastDomain = '';
@@ -138,6 +141,7 @@ function printHelp(): void {
   console.log('  -p key=value             任意查询参数，可重复（同名参数重复拼接，适配数组字段）');
   console.log('  --id N                   get/写类命令的 id（路径或查询参数，自动适配）');
   console.log('  --body \'<json>\'           写操作请求体（仅 body 类命令需要）');
+  console.log('  <本地路径> / --file        file upload 的本地文件（位置参数或 --file）');
   console.log('  --yes                    确认执行危险操作（不带 --yes 只预演不执行）');
   console.log('  --json                   输出紧凑 JSON（供 agent 消费）');
   console.log('  --tenant-id N            租户请求头，默认 1');
@@ -180,6 +184,20 @@ async function main(): Promise<void> {
     const def = COMMANDS.find((c) => c.domain === domain && c.action === action);
     if (!def) {
       throw new Error(`未知命令: ${domain} ${action}，运行 \`qtx help\` 查看可用命令`);
+    }
+
+    if (def.upload) {
+      const localPath = args[2] ?? str(flags.file);
+      if (!localPath) {
+        throw new Error(`命令 ${def.domain} ${def.action} 需要本地文件路径，例如：qtx file upload ./cover.png`);
+      }
+      const directory = str(flags.directory) ?? pairs.find(([k]) => k === 'directory')?.[1];
+      const url = await uploadFile(localPath, {
+        tenantId: str(flags['tenant-id']),
+        directory,
+      });
+      console.log(render(url, Boolean(flags.json)));
+      return;
     }
 
     const path = buildPath(def, flags, args[2]);

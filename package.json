@@ -1,6 +1,6 @@
 {
   "name": "qingtai-xianyu",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "闲鱼管理后台访问 CLI（qtx），只读查询 + 写操作，供 Qoder/Codex/Trae/WorkBuddy 等 agent 调用",
   "license": "UNLICENSED",
   "repository": {

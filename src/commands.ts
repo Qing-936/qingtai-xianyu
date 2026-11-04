@@ -6,6 +6,8 @@ export interface Command {
   summary: string;
   /** true 表示需要 --body '<json>' 请求体；false 用 -p 查询参数 */
   body?: boolean;
+  /** true 表示 multipart 文件上传：本地路径走位置参数或 --file，返回可访问 URL */
+  upload?: boolean;
   /** 危险操作：不带 --yes 时只预演不执行 */
   dangerous?: boolean;
 }
@@ -49,6 +51,9 @@ export const COMMANDS: Command[] = [
   // 卡券
   { domain: 'couponcard', action: 'list', method: 'GET', path: '/app/coupon-card/list', summary: '卡券模板列表' },
   { domain: 'couponcard', action: 'instance-page', method: 'GET', path: '/app/coupon-card/card-instance/page', summary: '卡密实例分页' },
+
+  // 文件（infra 文件存储）
+  { domain: 'file', action: 'upload', method: 'POST', path: '/infra/file/upload', upload: true, summary: '上传本地图片/文件返回可访问 URL（<本地路径>，可选 -p directory=）' },
 
   // Agent
   { domain: 'agent', action: 'actor', method: 'GET', path: '/app/xianyu/agent/actor', summary: '当前 Agent 角色' },
